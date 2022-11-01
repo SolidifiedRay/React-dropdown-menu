@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 import "./Dropdown.css";
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon } from "./Icons";
@@ -8,6 +8,10 @@ const Dropdown = ({
   menuItems,
   isMulti,
   onChange,
+  isLoading,
+  error,
+  hasMore,
+  setPageNum,
   closeOnOutsideClick = true,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -99,6 +103,37 @@ const Dropdown = ({
     onChange(newValue);
   };
 
+  // infinite scroll
+  const observer = useRef();
+  const lastBookElementRef = useCallback(
+    (node) => {
+      if (isLoading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPageNum((prev) => prev + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isLoading, hasMore, setPageNum]
+  );
+
+  const getMenuItem = (menuItem) => {
+    return (
+      <div
+        onClick={() => onMenuItemClick(menuItem)}
+        key={menuItem.value}
+        className={`dropdown-item ${isSelected(menuItem) && "selected"}`}
+      >
+        {isMulti && (
+          <input type="checkbox" checked={isSelected(menuItem)} readOnly />
+        )}
+        {menuItem.label}
+      </div>
+    );
+  };
+
   return (
     <div className="dropdown-container">
       <div ref={labelRef} onClick={handleInputClick} className="dropdown-label">
@@ -119,22 +154,20 @@ const Dropdown = ({
       </div>
       {showMenu && (
         <div ref={dropdownMenuRef} className="dropdown-menu">
-          {menuItems.map((menuItem) => (
-            <div
-              onClick={() => onMenuItemClick(menuItem)}
-              key={menuItem.value}
-              className={`dropdown-item ${isSelected(menuItem) && "selected"}`}
-            >
-              {isMulti && (
-                <input
-                  type="checkbox"
-                  checked={isSelected(menuItem)}
-                  readOnly
-                />
-              )}
-              {menuItem.label}
-            </div>
-          ))}
+          {menuItems.map((menuItem, i) => {
+            // give ref to only the last menu item
+            if (menuItems?.length === i + 1) {
+              return (
+                <div ref={lastBookElementRef} key={menuItem.label}>
+                  {getMenuItem(menuItem)}
+                </div>
+              );
+            } else {
+              return getMenuItem(menuItem);
+            }
+          })}
+          <div>{isLoading && "Loading..."}</div>
+          <div>{error && "Error..."}</div>
         </div>
       )}
     </div>
