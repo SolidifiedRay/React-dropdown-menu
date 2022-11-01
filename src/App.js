@@ -40,7 +40,7 @@ export default function App() {
           onChange={(value) => console.log(value)}
         />
         <br />
-        Disalbe closing the dropdown on outside click
+        Disable closing the dropdown on outside click
         <Dropdown
           closeOnOutsideClick={false}
           placeHolder="Select a month"
