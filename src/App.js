@@ -1,72 +1,34 @@
-import Dropdown from "./components/Dropdown";
-import useFetch from "./hooks/useFetch";
-import { useState } from "react";
+import React, { Component } from "react";
 
-export default function App() {
-  const menuItems = [
-    { value: "january", label: "January" },
-    { value: "february", label: "February" },
-    { value: "march", label: "March" },
-    { value: "april", label: "April" },
-    { value: "may", label: "May" },
-    { value: "june", label: "June" },
-    { value: "july", label: "July" },
-    { value: "august", label: "August" },
-    { value: "september", label: "September" },
-    { value: "october", label: "October" },
-    { value: "november", label: "November" },
-    { value: "december", label: "December" },
-  ];
+class App extends Component {
+  state = {
+    todos: [],
+  };
 
-  // a large book list
-  const [pageNum, setPageNum] = useState(1);
-  const { isLoading, error, lists, hasMore } = useFetch(pageNum);
+  async componentDidMount() {
+    try {
+      const res = await fetch("http://backend-dev222.us-east-1.elasticbeanstalk.com/api/nyu_apps/"); // fetching the data from api, before the page loaded
+      const todos = await res.json();
+      this.setState({
+        todos,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
-  return (
-    <div className="App">
-      <div style={{ width: 350, padding: 50 }}>
-        Single select
-        <Dropdown
-          placeHolder="Select a month"
-          menuItems={menuItems}
-          onChange={(value) => console.log(value)}
-        />
-        <br />
-        Multi select
-        <Dropdown
-          isMulti
-          placeHolder="Select months"
-          menuItems={menuItems}
-          onChange={(value) => console.log(value)}
-        />
-        <br />
-        Disable closing the dropdown on outside click
-        <Dropdown
-          closeOnOutsideClick={false}
-          placeHolder="Select a month"
-          menuItems={menuItems}
-          onChange={(value) => console.log(value)}
-        />
-        <Dropdown
-          isMulti
-          closeOnOutsideClick={false}
-          placeHolder="Select months"
-          menuItems={menuItems}
-          onChange={(value) => console.log(value)}
-        />
-        <br />
-        Select from a large book list (infinite scroll) <br />
-        Loading takes a few seconds
-        <Dropdown
-          placeHolder="Select a book"
-          menuItems={lists}
-          onChange={(value) => console.log(value)}
-          isLoading={isLoading}
-          error={error}
-          hasMore={hasMore}
-          setPageNum={setPageNum}
-        />
+  render() {
+    return (
+      <div>
+        {this.state.todos.map((item) => (
+          <div key={item.id}>
+            <h1>{item.title}</h1>
+            <span>{item.description}</span>
+          </div>
+        ))}
       </div>
-    </div>
-  );
+    );
+  }
 }
+
+export default App;
