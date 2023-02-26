@@ -20,6 +20,7 @@ class App extends Component {
   render() {
     return (
       <div>
+        Loading
         {this.state.todos.map((item) => (
           <div key={item.id}>
             <h1>{item.title}</h1>
